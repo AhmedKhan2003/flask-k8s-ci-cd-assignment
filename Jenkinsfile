@@ -3,7 +3,8 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
-        IMAGE_NAME = "ahmedkhan2003/flask-k8s-ci-cd"
+        IMAGE_NAME = "ahmedkhan023/flask-k8s-ci-cd"
+        TAG = "latest"
     }
 
     stages {
@@ -17,36 +18,33 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
-                }
+                bat """
+                docker build -t %IMAGE_NAME%:%TAG% .
+                """
             }
         }
 
         stage('Login to DockerHub') {
             steps {
-                script {
-                    sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
-                }
+                bat """
+                docker login -u %DOCKERHUB_CREDENTIALS_USR% -p %DOCKERHUB_CREDENTIALS_PSW%
+                """
             }
         }
 
         stage('Push to DockerHub') {
             steps {
-                script {
-                    sh "docker push ${IMAGE_NAME}:${BUILD_NUMBER}"
-                }
+                bat """
+                docker push %IMAGE_NAME%:%TAG%
+                """
             }
         }
 
         stage('Update Kubernetes Deployment') {
             steps {
-                script {
-                    sh """
-                        kubectl set image deployment/flask-app \
-                        flask-app=${IMAGE_NAME}:${BUILD_NUMBER}
-                    """
-                }
+                bat """
+                kubectl set image deployment/flask-app flask-app=%IMAGE_NAME%:%TAG% --namespace=default
+                """
             }
         }
     }
