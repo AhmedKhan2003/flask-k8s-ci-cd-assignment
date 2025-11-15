@@ -19,7 +19,8 @@ spec:
     spec:
       containers:
       - name: flask-app
-        image: flask-k8s-ci-cd-assignment:latest
+        image: flask-k8s-ci-cd:v2
+        imagePullPolicy: Never
         ports:
         - containerPort: 5000
         resources:
