@@ -1,0 +1,18 @@
+pipeline {
+  agent any
+  stages {
+    stage('Build') {
+      steps {
+        echo 'Building...'
+        script {
+          sh 'docker build -t flask-k8s-ci-cd-assignment:latest .'
+        }
+      }
+    }
+    stage('Deploy to Kubernetes (manual in task 4)') {
+      steps {
+        echo 'This stage will be executed in Jenkins task 4: use kubectl apply -f kubernetes/'
+      }
+    }
+  }
+}
