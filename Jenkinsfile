@@ -2,36 +2,51 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USER = credentials('dockerhub')
-        IMAGE_NAME = "ahmedkhan023/flask-k8s-ci-cd"
-        TAG = "v3"
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+        IMAGE_NAME = "ahmedkhan2003/flask-k8s-ci-cd"
     }
 
     stages {
 
-        stage('Clone') {
+        stage('Checkout') {
             steps {
-                git branch: 'develop', url: 'https://github.com/AhmedKhan2003/flask-k8s-ci-cd-assignment'
+                git branch: 'develop',
+                    url: 'https://github.com/AhmedKhan2003/flask-k8s-ci-cd-assignment'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME:$TAG .'
+                script {
+                    sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
+                }
+            }
+        }
+
+        stage('Login to DockerHub') {
+            steps {
+                script {
+                    sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
+                }
             }
         }
 
         stage('Push to DockerHub') {
             steps {
-                sh 'echo $DOCKERHUB_USER_PSW | docker login -u $DOCKERHUB_USER_USR --password-stdin'
-                sh 'docker push $IMAGE_NAME:$TAG'
+                script {
+                    sh "docker push ${IMAGE_NAME}:${BUILD_NUMBER}"
+                }
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Update Kubernetes Deployment') {
             steps {
-                sh 'kubectl apply -f kubernetes/deployment.yaml'
-                sh 'kubectl apply -f kubernetes/service.yaml'
+                script {
+                    sh """
+                        kubectl set image deployment/flask-app \
+                        flask-app=${IMAGE_NAME}:${BUILD_NUMBER}
+                    """
+                }
             }
         }
     }
