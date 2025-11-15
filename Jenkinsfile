@@ -43,7 +43,7 @@ pipeline {
         stage('Update Kubernetes Deployment') {
             steps {
                 bat """
-                kubectl set image deployment/flask-app flask-container=%IMAGE_NAME%:%TAG% --namespace=default
+                kubectl set image deployment/flask-app flask-app=%IMAGE_NAME%:%TAG% --namespace=default
                 """
             }
         }
